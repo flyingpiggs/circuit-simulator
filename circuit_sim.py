@@ -113,7 +113,7 @@ class Node:
                 else:
                     print("Error, unsupported value at node: " + inputName )
                     return False
-            if ( ( onesCount % 2 ) == 0 ):   #odd number of 1s
+            if ( ( onesCount % 2 ) == 0 ):   #even number of 1s
                 self.value = '1'
             else:
                 self.value = '0'
@@ -180,7 +180,8 @@ def MakeNodes( benchName ):
             line = line.replace(")", "")
             #name = "wire_" + line
             name = line
-            node = Node( name, None, 'OUTPUT', 'U' )
+            inputs.append( name )
+            node = Node( name, inputs, 'OUTPUT', 'U' )
         elif '=' in line:
             op = ''
             splitAtEq = line.split("=")
@@ -192,10 +193,12 @@ def MakeNodes( benchName ):
             inputs = toGetInputs.split(",")
             node = Node( name, inputs, op, 'U' )
         circuit.append( node )
+        #Comment out below line to get rid of the print statements about the nodes
         pp.pprint( vars ( node ) )
-
         #end of for loop
+
     return circuit
+
 
 # ------------------------------------------------------------------------------- #
 # This function traverses the graph looking for a name match
