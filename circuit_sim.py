@@ -7,7 +7,7 @@ class Node:
         self.outputReady = False
 
     def PerformOp( self, nodes ):
-        if ( self.type == 'input' or self.type == 'output' ):
+        if ( self.type == 'INPUT' or self.type == 'OUTPUT' ):
             print("Error, type cannot be 'input' or 'output' for operations")
             return False
 
@@ -107,10 +107,59 @@ class Node:
             print("Error, unsupported operation at node: " + self.name )
             return False
         return True     #just to indicate success
+    # ------------------------------------------------------------------------------- #
+
+# -------------------------End of Class Declaration------------------------------ #
 
 def MakeNodes( benchName ):
-    pass
+    bench = open( benchName, 'r' )
+    circuit = []
 
+    for line in bench:
+        node = None
+        name = ''
+        inputs = []
+        # Ignoring empty lines and comments, and removing spaces or newline
+        if (line == "\n"):
+            continue
+        line = line.replace(" ", "")
+        line = line.replace("\n", "")
+        if (line[0] == "#"):
+            continue
+
+        # @ Here it should just be in one of these formats:
+        # INPUT(x)
+        # OUTPUT(y)
+        # z=LOGIC(a,b,c,...)
+
+        # Removing everything but the line variable name
+        if (line[0:5] == "INPUT"):
+            line = line.replace("INPUT", "")
+            line = line.replace("(", "")
+            line = line.replace(")", "")
+            name = "wire_" + line
+            node = Node( name, None, 'INPUT', 'U' )
+        elif line[0:6] == "OUTPUT":
+            line = line.replace("OUTPUT", "")
+            line = line.replace("(", "")
+            line = line.replace(")", "")
+            name = "wire_" + line
+            node = Node( name, None, 'OUTPUT', 'U' )
+        elif '=' in line:
+            op = ''
+            splitAtEq = line.split("=")
+            toGetOp = splitAtEq[1].split("(")
+            op = toGetOp[0].upper()
+            toGetInputs = toGetOp[1].replace(")", "")
+            input = toGetInputs.split(",")
+            name = "wire_" + splitAtEq[0]
+            node = Node( name, inputs, op, 'U' )
+        circuit.append( node )
+
+        #end of for loop
+
+
+# ------------------------------------------------------------------------------- #
 # This function traverses the graph looking for a name match
 # Once a match is found, it returns the value
 def GetVal( name, nodes ):
@@ -119,12 +168,15 @@ def GetVal( name, nodes ):
             return node.value
     return None   #This indicates an error since there should always be a match
 
+# ------------------------------------------------------------------------------- #
 def GetTestVectors( fileName ):
     pass
 
+# ------------------------------------------------------------------------------- #
 def Simulate( circuit, testVectors ):
     pass
 
+# ------------------------------------------------------------------------------- #
 def main():
     # Read-in circuit benchmark and create circuit nodes
     userInput = input()
