@@ -203,6 +203,7 @@ def MakeNodes( benchName ):
 # ------------------------------------------------------------------------------- #
 # This function traverses the graph looking for a name match
 # Once a match is found, it returns the value
+# Might want to check for outputReady status too
 def GetVal( name, nodes ):
     for node in nodes:
         if ( node.name == name and node.type != 'OUTPUT' ):
