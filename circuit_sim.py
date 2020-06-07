@@ -67,6 +67,7 @@ class Circuit:
                 line = line.replace("(", "")
                 line = line.replace(")", "")
                 name = line
+                primaryInputs.append(name)
                 node = Node( name, None, 'INPUT' )
             elif line[0:6].upper() == "OUTPUT":
                 outputCount += 1
@@ -74,6 +75,7 @@ class Circuit:
                 line = line.replace("(", "")
                 line = line.replace(")", "")
                 name = line + '_out'
+                primaryOutputs.append(name)
                 inputs.append( line )
                 node = Node( name, inputs, 'OUTPUT' )
             elif '=' in line:
@@ -166,6 +168,7 @@ def main():
     # Performance simulation/breadth-first search through the circuit
     # Simultaneously do some other stuff depending on what the assignment calls for?
     # Ex: Calculate the critical path (longest delay path)
+    pp.pprint( vars ( circuit ) )
     if ( circuit.Simulate( None ) ):
         print("Simulation complete!")
     else:
