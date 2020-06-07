@@ -62,12 +62,14 @@ class Circuit:
 
             # Removing everything but the line variable name
             if (line[0:5].upper() == "INPUT"):
+                inputCount += 1
                 line = line.replace("INPUT", "")
                 line = line.replace("(", "")
                 line = line.replace(")", "")
                 name = line
                 node = Node( name, None, 'INPUT' )
             elif line[0:6].upper() == "OUTPUT":
+                outputCount += 1
                 line = line.replace("OUTPUT", "")
                 line = line.replace("(", "")
                 line = line.replace(")", "")
@@ -75,6 +77,7 @@ class Circuit:
                 inputs.append( line )
                 node = Node( name, inputs, 'OUTPUT' )
             elif '=' in line:
+                gateCount += 1
                 op = ''
                 splitAtEq = line.split("=")
                 name = splitAtEq[0]
@@ -83,8 +86,9 @@ class Circuit:
                 toGetInputs = toGetOp[1].replace(")", "")
                 inputs = toGetInputs.split(",")
                 node = Node( name, inputs, op )
-            circuit.append( node )
-            #Comment out below line to get rid of the print statements about the nodes
+            nodes[name] = ( node )
+            #Comment out below lines to get rid of the print statements about the nodes
+            print("The key, %s, maps to the node: " % nodes[name].name)
             pp.pprint( vars ( node ) )
             #end of for loop
 
@@ -97,8 +101,9 @@ class Circuit:
                 continue
             for input in node.inputs:
                 nodes[input].outputs.append( node.name )
-
-
+            #end of inner for loop
+        #end of outer for loop
+        #These three variables below are meant to be available externally
         self.primaryInputs = primaryInputs
         self.primaryOutputs = primaryOutputs
         self.nodes = nodes
