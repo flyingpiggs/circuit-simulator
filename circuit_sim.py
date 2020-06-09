@@ -1,5 +1,6 @@
 # It's the Pretty Printer! Just lke Pretty Patties without the tongue coloring
 # Documentation: https://docs.python.org/3/library/pprint.html
+from copy import copy
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -15,7 +16,44 @@ class Node:
         self.values = []              #array of values, for synchronous TV simulation
     # ---------------------------------------------------------------------------- #
     def PerformOp( self, nodes ):
-        pass
+        if ( self.type == 'INPUT' or self.type == 'OUTPUT' ):
+            print("Error, type cannot be 'INPUT' or 'OUTPUT' for operations")
+            return False
+        if not self.allInputsReady:
+            print("Error, not all the inputs for node %s are ready!" % self.name )
+            return False
+
+
+        op = self.type
+        inputs = self.inputs
+        inputCount = len(inputs)
+        outputValues = copy( nodes[ inputs[0] ].values )
+        TV_Count = len( outputValues )
+
+        for i in range( 1, inputCount ):
+            currentValues = nodes[inputs[i]].values
+            for j in range( TV_Count ):
+                if op == "AND":
+                    outputValues[j] = outputValues[j] & currentValues[j]
+                elif op == "NAND":
+                    outputValues[j] = ~( outputValues[j] & currentValues[j] )
+                elif op == "OR":
+                    outputValues[j] = outputValues[j] | currentValues[j]
+                elif op == "NOR":
+                    outputValues[j] = ~( outputValues[j] | currentValues[j] )
+                elif op == "XOR":
+                    outputValues[j] = outputValues[j] ^ currentValues[j]
+                elif op == "XNOR":
+                    outputValues[j] = ~( outputValues[j] ^ currentValues[j] )
+                elif op == "NOT":
+                    outputValues[j] = ~currentValues[j]
+                elif op == "BUFF":
+                    outputValues[j] = currentValues[j]
+                else:
+                    print("Error, unsupported operation at node: " + self.name )
+                    return False
+        self.values = outputValues
+        return True    #just indicating success
     # ---------------------------------------------------------------------------- #
 # -------------------------End of Class Declaration------------------------------ #
 class Circuit:
@@ -36,10 +74,10 @@ class Circuit:
         inputCount = 0
         outputCount = 0
 
-        #Make the nodes and connect the graph
-        #Each line of the benchmark only provides information about the in-edges
-        #so I need to establish the sources' out-edges afterwards
-        #Note: The primary output nodes should share a name...this will cause collison
+        # Make the nodes and connect the graph
+        # Each line of the benchmark only provides information about the in-edges
+        # so I need to establish the sources' out-edges afterwards
+        # The primary output nodes should share a name with gates...this will cause collison
         # Just call it name_out for the primary output nodes
         for line in bench:
             name = ''
@@ -88,14 +126,15 @@ class Circuit:
                 toGetInputs = toGetOp[1].replace(")", "")
                 inputs = toGetInputs.split(",")
                 node = Node( name, inputs, op )
-            nodes[name] = ( node )
+            nodes[name] = node
             #Comment out below lines to get rid of the print statements about the nodes
             print("The key, %s, maps to the node: " % nodes[name].name)
             pp.pprint( vars ( node ) )
             #end of for loop
 
-        # Used to establish the out-edges, each node only holds in-edge information
-        # so I need to infer the out-edges using this information
+        # This loop is used to establish the out-edges
+        # The benchmark file only holds in-edge information so
+        # I need to infer the out-edges after connecting in-edges
         # Primary inputs have no in-edges
         for key in nodes:  # Iterators through dict are the keys, not the values
             node = nodes[key]
@@ -105,7 +144,7 @@ class Circuit:
                 nodes[input].outputs.append( node.name )
             #end of inner for loop
         #end of outer for loop
-        #These three variables below are meant to be available externally
+
         self.primaryInputs = primaryInputs
         self.primaryOutputs = primaryOutputs
         self.nodes = nodes
@@ -138,7 +177,7 @@ class Circuit:
     # the keys into the dict will be the same as the node names
     # the order of each list will correspond to the order of the TV file
     def _GetOutputValues( self ):
-        values = {}
+        values = []
         return values
     # ---------------------------------------------------------------------------- #
     def PrintOutput( self, fileName ):
