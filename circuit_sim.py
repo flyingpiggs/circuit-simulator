@@ -61,8 +61,11 @@ class Circuit:
         self.gateCount, self.inputWidth, self.outputWidth = self.MakeNodes( _benchName )
         #self.inputs = self._FindInputs()
         #self.outputs = self._FindOutputs()
-        #I need to grab the strings for these two lists in the MakeNodes function
+        #I need to grab the strings for the two above lists in the MakeNodes function
         #Otherwise, the bit order of the output vector won't match the benchmark file
+        #Note: self.nodes is made in MakeNodes
+        self.readyForOp = []
+        self.waitingForInputs = self.nodes.keys()
     # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
         bench = open( benchName, 'r' )
@@ -168,6 +171,14 @@ class Circuit:
     #     return outputs
     # ---------------------------------------------------------------------------- #
     # Should return a list of strings
+    # bit ordering within each string/vector is MSB <--- LSB
+    # bit ordering in the benchmark file should go
+    # LSB
+    # |
+    # |
+    # V
+    # MSB
+    # This above order should be paralled by the primary inputs list
     def FetchTestVectors( self, fileName ):
         testVectors = []
         return testVectors
@@ -187,6 +198,14 @@ class Circuit:
         else:
             outFile = None
         pass
+    # ---------------------------------------------------------------------------- #
+    def _ToggleWhichInputsReady( self, name ):
+        node = self.nodes[name]
+        size = len( node.outputs )
+        for i in range(size):
+            whichInputsReady = self.nodes[node.outputs[i]].whichInputsReady
+            if node.name not in whichInputsReady:
+                whichInputsReady.add( node.name )
     # ---------------------------------------------------------------------------- #
     def Simulate( self, options ):  #add support for options down the road
         return True
