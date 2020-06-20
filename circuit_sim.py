@@ -62,6 +62,7 @@ class Circuit:
     def __init__( self, _benchName ):
         self.gateCount, self.inputWidth, self.outputWidth = self.MakeNodes( _benchName )
         # Three data members are also declared and defined in MakeNodes
+        # waiting, ready, finished
         self.readyForOp = []
         self.waitingForInputs = self.nodes.keys()
     # ---------------------------------------------------------------------------- #
@@ -174,6 +175,9 @@ class Circuit:
                 # The performOp function of each node does binary operations
                 # so it has to be an int, not char or string
                 i += 1
+        #end of loop for testVector
+        for key in keys:
+            self.nodes[key].outputReady = True
     # ---------------------------------------------------------------------------- #
     # Placeholder function
     # I need to give a good bit more thought to the interface and structure
