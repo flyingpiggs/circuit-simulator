@@ -4,6 +4,8 @@ from copy import copy
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
+# It'd be nice if I was able to also determine what level each node is at too
+
 class Node:
     def __init__( self, _name, _inputs, _type ):
         self.name = _name             #used to access the graph dict
@@ -59,11 +61,7 @@ class Node:
 class Circuit:
     def __init__( self, _benchName ):
         self.gateCount, self.inputWidth, self.outputWidth = self.MakeNodes( _benchName )
-        #self.inputs = self._FindInputs()
-        #self.outputs = self._FindOutputs()
-        #I need to grab the strings for the two above lists in the MakeNodes function
-        #Otherwise, the bit order of the output vector won't match the benchmark file
-        #Note: self.nodes is made in MakeNodes
+        # Three data members are also declared and defined in MakeNodes
         self.readyForOp = []
         self.waitingForInputs = self.nodes.keys()
     # ---------------------------------------------------------------------------- #
@@ -154,21 +152,36 @@ class Circuit:
         bench.close()
         return gateCount, inputCount, outputCount
     # ---------------------------------------------------------------------------- #
-    # return a list of strings corresponding to the input node keys
-    # def _FindInputs( self ):
-    #     inputs = []
-    #     for node in self.nodes:
-    #         if node.type == 'INPUT':
-    #             inputs.append( node.name )
-    #     return inputs
+    # Used to fill in the values of the primary inputs
+    # generateTV is a Boolean that indicates whether the TV generator is in use
+    def SetPrimaryInputs( self, generateTV ):
+        if generateTV:
+            print("Generating test vectors...")
+            testVectors = GenerateTV()
+        else:
+            print("Please enter in your test vector file name")
+            fileName = input()
+            testVectors = FetchTestVectors( fileName )
+        # typeof( testVectors ) should be list of strings
+        # MSB <------ LSB
+        keys = self.primaryInputs
+        if self.inputWidth != len(testVectors[0]):
+            print("Error, input TV size does not match circuit input width!")
+        for testVector in testVectors:
+            i = 0
+            for val in reversed(testVector):
+                self.nodes[keys[i]].values.append( int( val ) )
+                # The performOp function of each node does binary operations
+                # so it has to be an int, not char or string
+                i += 1
     # ---------------------------------------------------------------------------- #
-    # return a list of strings corresponding to the output node keys
-    # def _FindOutputs( self ):
-    #     outputs = []
-    #     for node in self.nodes:
-    #         if node.type == 'OUTPUT':
-    #             outputs.append( node.name )
-    #     return outputs
+    # Placeholder function
+    # I need to give a good bit more thought to the interface and structure
+    # I have it returning the list of test vectors for now...
+    # I should look into how generators in python work for this part
+    def GenerateTV( self ):
+        testVectors = []
+        return testVectors
     # ---------------------------------------------------------------------------- #
     # Should return a list of strings
     # bit ordering within each string/vector is MSB <--- LSB
@@ -184,9 +197,9 @@ class Circuit:
         return testVectors
     # ---------------------------------------------------------------------------- #
     # Helper function:
-    # output values should be packaged in a dict of lists
-    # the keys into the dict will be the same as the node names
-    # the order of each list will correspond to the order of the TV file
+    # Output values should be packaged in a list of binary strings
+    # The order of the list will correspond to the order of vectors in the TV file
+    # The order of binary strings will correspond to the order of the benchmark
     def _GetOutputValues( self ):
         values = []
         return values
@@ -197,7 +210,9 @@ class Circuit:
             outFile = open(fileName + '.txt', 'w')
         else:
             outFile = None
-        pass
+        outputValues = _GetOutputValues()
+        for value in outputValues:
+            print(value, file = outFile)
     # ---------------------------------------------------------------------------- #
     def _ToggleWhichInputsReady( self, name ):
         node = self.nodes[name]
@@ -207,6 +222,7 @@ class Circuit:
             if node.name not in whichInputsReady:
                 whichInputsReady.add( node.name )
     # ---------------------------------------------------------------------------- #
+    # Essentially does breadth-first search
     def Simulate( self, options ):  #add support for options down the road
         return True
     # ---------------------------------------------------------------------------- #
@@ -216,21 +232,30 @@ class Circuit:
 # ---------------------------------------------------------------------------- #
 def main():
     # Read-in circuit benchmark and create circuit nodes
-    print("Enter bench name: ")
-    userInput = input()
-    circuit = Circuit( userInput )
-    # Read-in test vectors
-    print("Enter test vector file name")
-    userInput = input()
-    circuit.FetchTestVectors( userInput )
-    # Performance simulation/breadth-first search through the circuit
-    # Simultaneously do some other stuff depending on what the assignment calls for?
-    # Ex: Calculate the critical path (longest delay path)
-    pp.pprint( vars ( circuit ) )
-    if ( circuit.Simulate( None ) ):
-        print("Simulation complete!")
-    else:
-        print("Simulation failed!!!")
+    userInput = ''
+    print("Enter exit to quit the program")
+    while userInput != 'exit':
+        print("Enter bench name: ")
+        userInput = input()
+        circuit = Circuit( userInput )
+        # Read-in test vectors
+        print("Enter test vector file name")
+        userInput = input()
+        circuit.FetchTestVectors( userInput )
+        # Performance simulation/breadth-first search through the circuit
+        # Simultaneously do some other stuff depending on what the assignment calls for?
+        # Ex: Calculate the critical path (longest delay path)
+        pp.pprint( vars ( circuit ) )
+        if ( circuit.Simulate( None ) ):
+            print("Simulation complete!")
+            print("Type in a name for the output file (.txt is automatically appended)")
+            print("Prints to screen by default")
+            userInput = input()
+            circuit.PrintOutput( userInput )
+        else:
+            print("Simulation failed!!!")
+        del circuit
+
 
 if __name__ == "__main__":
     main()
