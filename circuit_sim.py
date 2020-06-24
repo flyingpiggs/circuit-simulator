@@ -64,6 +64,7 @@ class Circuit:
         # Three data members are also declared and defined in MakeNodes
         # waiting, ready, finished
         self.readyForOp = []
+        # need to be careful about this part, are they referencing the same memory space?
         self.waitingForInputs = self.nodes.keys()
     # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
@@ -162,15 +163,27 @@ class Circuit:
         else:
             print("Please enter in your test vector file name")
             fileName = input()
-            testVectors = FetchTestVectors( fileName )
+            testVectors = open( fileName, 'r' )
         # typeof( testVectors ) should be list of strings
-        # MSB <------ LSB
+        # Should return a list of strings
+        # bit ordering within each string/vector is MSB <--- LSB
+        # bit ordering in the benchmark file should go
+        # LSB
+        # |
+        # |
+        # V
+        # MSB
+        # This above order should be paralled by the primary inputs list
+        if testVectors == []:
+            return None
         keys = self.primaryInputs
-        if self.inputWidth != len(testVectors[0]):
-            print("Error, input TV size does not match circuit input width!")
+        #if self.inputWidth != len(testVectors[0]):
+        #    print("Error, input TV size does not match circuit input width!")
         for testVector in testVectors:
             i = 0
             for val in reversed(testVector):
+                if val == '\n':
+                    continue
                 self.nodes[keys[i]].values.append( int( val ) )
                 # The performOp function of each node does binary operations
                 # so it has to be an int, not char or string
@@ -184,19 +197,6 @@ class Circuit:
     # I have it returning the list of test vectors for now...
     # I should look into how generators in python work for this part
     def GenerateTV( self ):
-        testVectors = []
-        return testVectors
-    # ---------------------------------------------------------------------------- #
-    # Should return a list of strings
-    # bit ordering within each string/vector is MSB <--- LSB
-    # bit ordering in the benchmark file should go
-    # LSB
-    # |
-    # |
-    # V
-    # MSB
-    # This above order should be paralled by the primary inputs list
-    def FetchTestVectors( self, fileName ):
         testVectors = []
         return testVectors
     # ---------------------------------------------------------------------------- #
@@ -214,7 +214,7 @@ class Circuit:
             outFile = open(fileName + '.txt', 'w')
         else:
             outFile = None
-        outputValues = _GetOutputValues()
+        outputValues = self._GetOutputValues()
         for value in outputValues:
             print(value, file = outFile)
     # ---------------------------------------------------------------------------- #
@@ -243,9 +243,11 @@ def main():
         userInput = input()
         circuit = Circuit( userInput )
         # Read-in test vectors
-        print("Enter test vector file name")
-        userInput = input()
-        circuit.FetchTestVectors( userInput )
+        #print("Enter test vector file name")
+        #userInput = input()
+        circuit.SetPrimaryInputs( False )
+        for key in circuit.primaryInputs:
+            pp.pprint( vars ( circuit.nodes[key] ) )
         # Performance simulation/breadth-first search through the circuit
         # Simultaneously do some other stuff depending on what the assignment calls for?
         # Ex: Calculate the critical path (longest delay path)
