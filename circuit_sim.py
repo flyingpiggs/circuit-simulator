@@ -228,7 +228,7 @@ def main():
     print("Enter input file name: ")
     userInput = input()
     testVectors = GetTestVectors( userInput )
-    # Performance simulation/breadth-first search through the circuit
+    # Perform simulation/breadth-first search through the circuit
     # Simultaneously do some other stuff depending on what the assignment calls for?
     # Ex: Calculate the critical path (longest delay path)
     print("Starting circuit simulation...")
