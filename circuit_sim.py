@@ -174,15 +174,15 @@ class Circuit:
         # V
         # MSB
         # This above order should be paralled by the primary inputs list
-        if testVectors == []:
-            return None
         keys = self.primaryInputs
-        #if self.inputWidth != len(testVectors[0]):
-        #    print("Error, input TV size does not match circuit input width!")
         for testVector in testVectors:
+            if ( self.inputWidth + 1 ) != len( testVector ):
+                print("Error, input TV size does not match circuit input width!")
+                print("Test vector is: " + testVector )
+                break
             i = 0
             for val in reversed(testVector):
-                if val == '\n':
+                if val == '\n': #since strings end in newline characters
                     continue
                 self.nodes[keys[i]].values.append( int( val ) )
                 # The performOp function of each node does binary operations
@@ -246,9 +246,9 @@ def main():
         #print("Enter test vector file name")
         #userInput = input()
         circuit.SetPrimaryInputs( False )
-        for key in circuit.primaryInputs:
-            pp.pprint( vars ( circuit.nodes[key] ) )
-        # Performance simulation/breadth-first search through the circuit
+        #for key in circuit.primaryInputs:
+        #    pp.pprint( vars ( circuit.nodes[key] ) )
+        # Perform simulation/breadth-first search through the circuit
         # Simultaneously do some other stuff depending on what the assignment calls for?
         # Ex: Calculate the critical path (longest delay path)
         pp.pprint( vars ( circuit ) )
