@@ -62,10 +62,12 @@ class Circuit:
     def __init__( self, _benchName ):
         self.gateCount, self.inputWidth, self.outputWidth = self.MakeNodes( _benchName )
         # Three data members are also declared and defined in MakeNodes
-        # waiting, ready, finished
-        self.readyForOp = []
-        # need to be careful about this part, are they referencing the same memory space?
-        self.waitingForInputs = self.nodes.keys()
+        # These three lists are for BFS
+        self.waiting = [ *self.nodes ]
+        # Doc: https://www.python.org/dev/peps/pep-0448/
+        # Example: https://stackoverflow.com/a/45253740
+        self.ready = None
+        self.done = None
     # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
         bench = open( benchName, 'r' )
@@ -228,6 +230,19 @@ class Circuit:
     # ---------------------------------------------------------------------------- #
     # Essentially does breadth-first search
     def Simulate( self, options ):  #add support for options down the road
+        if options:
+            #Unpack options here
+            pass
+        waiting = self.waiting
+        ready = self.ready
+        done = self.done
+        while len( waiting ) > 0:
+            for key in waiting:
+                pass
+            for key in ready:
+                pass
+            for key in done:
+                pass 
         return True
     # ---------------------------------------------------------------------------- #
 
