@@ -66,8 +66,9 @@ class Circuit:
         self.waiting = [ *self.nodes ]
         # Doc: https://www.python.org/dev/peps/pep-0448/
         # Example: https://stackoverflow.com/a/45253740
-        self.ready = None
-        self.done = None
+        self.ready = []
+        #self.done = []
+        # I don't really care about the ones that are done right?
     # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
         bench = open( benchName, 'r' )
@@ -193,6 +194,7 @@ class Circuit:
         #end of loop for testVector
         for key in keys:
             self.nodes[key].outputReady = True
+            self.nodes[key].allInputsReady = True
     # ---------------------------------------------------------------------------- #
     # Placeholder function
     # I need to give a good bit more thought to the interface and structure
@@ -221,28 +223,49 @@ class Circuit:
             print(value, file = outFile)
     # ---------------------------------------------------------------------------- #
     def _ToggleWhichInputsReady( self, name ):
-        node = self.nodes[name]
-        size = len( node.outputs )
+        srcNode = self.nodes[name]
+        size = len( srcNode.outputs )
         for i in range(size):
-            whichInputsReady = self.nodes[node.outputs[i]].whichInputsReady
-            if node.name not in whichInputsReady:
-                whichInputsReady.add( node.name )
+            destNode = self.nodes[srcNode.outputs[i]]
+            whichInputsReady = destNode.whichInputsReady
+            # srcNode.name == name  ;this statement should evaluate to True
+            if name not in whichInputsReady:
+                whichInputsReady.add( name )
+                if len(whichInputsReady) == len(destNode.inputs):
+                    destNode.allInputsReady = True
     # ---------------------------------------------------------------------------- #
     # Essentially does breadth-first search
     def Simulate( self, options ):  #add support for options down the road
         if options:
             #Unpack options here
             pass
+        nodes = self.nodes
         waiting = self.waiting
         ready = self.ready
-        done = self.done
+        #done = self.done
         while len( waiting ) > 0:
             for key in waiting:
-                pass
+                if nodes[key].outputReady:
+                    self._ToggleWhichInputsReady( key )
+                if nodes[key].allInputsReady:
+                    ready.append(key)
+                    waiting.remove(key)
+                    # These keys should all be unique within the circuit
+                    # Also, I believe I've set things up to be strings, but
+                    # let's see if that's actually the case. They might be dict_keys
+                    # which are supposedly different?
             for key in ready:
-                pass
-            for key in done:
-                pass 
+                if nodes[key].type == 'INPUT':
+                    pass
+                elif nodes[key].type == 'OUTPUT':
+                    srcName = nodes[key].inputs[0]
+                    #an output node should only have one input
+                    nodes[key].values  = nodes[srcName].values.copy()
+                else:
+                    nodes[key].outputReady = nodes[key].PerformOp( nodes )
+                ready.remove(key)
+            #for key in done:
+            #    pass
         return True
     # ---------------------------------------------------------------------------- #
 
