@@ -67,9 +67,8 @@ class Circuit:
         # Doc: https://www.python.org/dev/peps/pep-0448/
         # Example: https://stackoverflow.com/a/45253740
         self.ready = []
-        #self.done = []
-        # I don't really care about the ones that are done right?
-    # ---------------------------------------------------------------------------- #
+        self.done = []
+        # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
         bench = open( benchName, 'r' )
         nodes = {}
@@ -193,7 +192,7 @@ class Circuit:
                 i += 1
         #end of loop for testVector
         for key in keys:
-            self.nodes[key].outputReady = True
+            #self.nodes[key].outputReady = True
             self.nodes[key].allInputsReady = True
     # ---------------------------------------------------------------------------- #
     # Placeholder function
@@ -242,30 +241,61 @@ class Circuit:
         nodes = self.nodes
         waiting = self.waiting
         ready = self.ready
-        #done = self.done
-        while len( waiting ) > 0:
+        done = self.done
+        nodeCount = self.gateCount + self.inputWidth + self.outputWidth
+        print("waiting has...")
+        for key in waiting:
+            print(key)
+
+        print('\n')
+        #counter = 0
+        #while counter < 2:
+        while len( done ) < nodeCount:
+            #print( "counter: " + counter )
+            print(type(waiting))
             for key in waiting:
-                if nodes[key].outputReady:
-                    self._ToggleWhichInputsReady( key )
+                #if nodes[key].outputReady: #bug might have something to do with this
+                # should this be in the ready loop?
+                #self._ToggleWhichInputsReady( key )
+                # seem to be skipping values?
+                print("in waiting for: " + key)
+                #print(type(key))
+                #pp.pprint( vars(nodes[key]) )
+                #counter += 1
                 if nodes[key].allInputsReady:
+                    print("Before: " + str(len(waiting)))
                     ready.append(key)
-                    waiting.remove(key)
+                    print("After: " + str(len(waiting)))
                     # These keys should all be unique within the circuit
                     # Also, I believe I've set things up to be strings, but
                     # let's see if that's actually the case. They might be dict_keys
                     # which are supposedly different?
             for key in ready:
+                print("in ready...")
+                print(key)
+                if nodes[key].outputReady:
+                    print("Triggered outputReady!")
+                    continue
+                else:
+                    waiting.remove(key)
                 if nodes[key].type == 'INPUT':
+                    nodes[key].outputReady = True
                     pass
                 elif nodes[key].type == 'OUTPUT':
                     srcName = nodes[key].inputs[0]
                     #an output node should only have one input
                     nodes[key].values  = nodes[srcName].values.copy()
+                    # below might fix the bug actually
+                    nodes[key].outputReady = True
                 else:
                     nodes[key].outputReady = nodes[key].PerformOp( nodes )
-                ready.remove(key)
-            #for key in done:
-            #    pass
+                #waiting.remove(key)
+                self._ToggleWhichInputsReady( key )
+                done.append(key)
+            # for key in done:
+            #     ready.remove(key)
+            #print("hi! Not in any of the list step-thru loops")
+            #counter += 1
         return True
     # ---------------------------------------------------------------------------- #
 
