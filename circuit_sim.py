@@ -209,6 +209,14 @@ class Circuit:
     # The order of binary strings will correspond to the order of the benchmark
     def _GetOutputValues( self ):
         values = []
+        keys = self.primaryOutputs
+        size = len(self.nodes[keys[0]].values)
+        for i in range(size):
+            temp = ''
+            for key in keys:
+                temp += str(self.nodes[key].values[i])
+            #temp += '\n'
+            values.append(temp)
         return values
     # ---------------------------------------------------------------------------- #
     def PrintOutput( self, fileName ):
@@ -255,15 +263,15 @@ class Circuit:
 
             #print(type(waiting))
             for key in waiting:
-                print("in waiting for: " + key)
-                #print(type(key))
-                #pp.pprint( vars(nodes[key]) )
+                # print("in waiting for: " + key)
+                # print(type(key))
+                # pp.pprint( vars(nodes[key]) )
                 if nodes[key].allInputsReady:
                     #print("Triggered allInputsReady!")
                     ready.append(key)
             for key in ready:
-                print("in ready...")
-                print(key)
+                # print("in ready...")
+                # print(key)
                 waiting.remove(key)
                 if nodes[key].type == 'INPUT':
                     nodes[key].outputReady = True
@@ -275,12 +283,16 @@ class Circuit:
                     nodes[key].outputReady = True
                 else:
                     nodes[key].outputReady = nodes[key].PerformOp( nodes )
+                    if not nodes[key].outputReady:
+                        print("Simulation failed at node: " + key)
+                        return False
                 self._ToggleWhichInputsReady( key )
                 done.append(key)
+
             for key in done:
                 ready.remove(key)
             done = []
-        #end of BFS loop
+        #exit BFS loop
         return True
     # ---------------------------------------------------------------------------- #
 
