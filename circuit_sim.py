@@ -306,6 +306,8 @@ def main():
     while userInput != 'exit':
         print("Enter bench name: ")
         userInput = input()
+        if userInput == 'exit':
+            break
         circuit = Circuit( userInput )
         # Read-in test vectors
         #print("Enter test vector file name")
@@ -322,6 +324,8 @@ def main():
             print("Type in a name for the output file (.txt is automatically appended)")
             print("Prints to screen by default")
             userInput = input()
+            if userInput == 'exit':
+                break
             circuit.PrintOutput( userInput )
         else:
             print("Simulation failed!!!")
