@@ -67,7 +67,7 @@ class Circuit:
         # Doc: https://www.python.org/dev/peps/pep-0448/
         # Example: https://stackoverflow.com/a/45253740
         self.ready = []
-        self.done = []
+        #self.done = []
         # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
         bench = open( benchName, 'r' )
@@ -241,27 +241,23 @@ class Circuit:
         nodes = self.nodes
         waiting = self.waiting
         ready = self.ready
-        done = self.done
+        done = []
         # print("waiting has...")
         # for key in waiting:
         #     print(key)
         # print('\n')
-        #counter = 0
-        #while counter < 2:
         while len( waiting ) > 0:
-            #print( "counter: " + counter )
-            print(type(waiting))
+            # it was skipping values when I tried to remove a key from a list
+            # at the same time as appending it to another list
+            # I think the remove operation causes the iterator to point
+            # to the next key since I remove current key, then
+            # the for loop moves the iterator again, thus skipping values
+
+            #print(type(waiting))
             for key in waiting:
-                # seem to be skipping values?
-                # it was skipping values when I tried to remove key
-                # at the same time as appending it to remove
-                # I think the remove operation ends up shifting the iterator somehow
-                # since I'm trying to remove the value corresponding to where the iterator
-                # is at, which causes the issues I'm having.
                 print("in waiting for: " + key)
                 #print(type(key))
                 #pp.pprint( vars(nodes[key]) )
-                #counter += 1
                 if nodes[key].allInputsReady:
                     #print("Triggered allInputsReady!")
                     ready.append(key)
@@ -276,7 +272,6 @@ class Circuit:
                     srcName = nodes[key].inputs[0]
                     #an output node should only have one input
                     nodes[key].values  = nodes[srcName].values.copy()
-                    # below might fix the bug actually
                     nodes[key].outputReady = True
                 else:
                     nodes[key].outputReady = nodes[key].PerformOp( nodes )
@@ -285,8 +280,7 @@ class Circuit:
             for key in done:
                 ready.remove(key)
             done = []
-            #print("hi! Not in any of the list step-thru loops")
-            #counter += 1
+        #end of BFS loop
         return True
     # ---------------------------------------------------------------------------- #
 
