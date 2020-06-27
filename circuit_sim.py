@@ -242,42 +242,33 @@ class Circuit:
         waiting = self.waiting
         ready = self.ready
         done = self.done
-        nodeCount = self.gateCount + self.inputWidth + self.outputWidth
-        print("waiting has...")
-        for key in waiting:
-            print(key)
-
-        print('\n')
+        # print("waiting has...")
+        # for key in waiting:
+        #     print(key)
+        # print('\n')
         #counter = 0
         #while counter < 2:
-        while len( done ) < nodeCount:
+        while len( waiting ) > 0:
             #print( "counter: " + counter )
             print(type(waiting))
             for key in waiting:
-                #if nodes[key].outputReady: #bug might have something to do with this
-                # should this be in the ready loop?
-                #self._ToggleWhichInputsReady( key )
                 # seem to be skipping values?
+                # it was skipping values when I tried to remove key
+                # at the same time as appending it to remove
+                # I think the remove operation ends up shifting the iterator somehow
+                # since I'm trying to remove the value corresponding to where the iterator
+                # is at, which causes the issues I'm having.
                 print("in waiting for: " + key)
                 #print(type(key))
                 #pp.pprint( vars(nodes[key]) )
                 #counter += 1
                 if nodes[key].allInputsReady:
-                    print("Before: " + str(len(waiting)))
+                    #print("Triggered allInputsReady!")
                     ready.append(key)
-                    print("After: " + str(len(waiting)))
-                    # These keys should all be unique within the circuit
-                    # Also, I believe I've set things up to be strings, but
-                    # let's see if that's actually the case. They might be dict_keys
-                    # which are supposedly different?
             for key in ready:
                 print("in ready...")
                 print(key)
-                if nodes[key].outputReady:
-                    print("Triggered outputReady!")
-                    continue
-                else:
-                    waiting.remove(key)
+                waiting.remove(key)
                 if nodes[key].type == 'INPUT':
                     nodes[key].outputReady = True
                     pass
@@ -289,11 +280,11 @@ class Circuit:
                     nodes[key].outputReady = True
                 else:
                     nodes[key].outputReady = nodes[key].PerformOp( nodes )
-                #waiting.remove(key)
                 self._ToggleWhichInputsReady( key )
                 done.append(key)
-            # for key in done:
-            #     ready.remove(key)
+            for key in done:
+                ready.remove(key)
+            done = []
             #print("hi! Not in any of the list step-thru loops")
             #counter += 1
         return True
