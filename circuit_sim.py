@@ -63,11 +63,11 @@ class Circuit:
         self.gateCount, self.inputWidth, self.outputWidth = self.MakeNodes( _benchName )
         # Three data members are also declared and defined in MakeNodes
         # These three lists are for BFS
-        self.waiting = [ *self.nodes ]
+        self.nodeKeys = [ *self.nodes ]
         # Doc: https://www.python.org/dev/peps/pep-0448/
         # Example: https://stackoverflow.com/a/45253740
-        self.ready = []
-        #self.done = []
+        # self.ready = []
+        # self.done = []
         # ---------------------------------------------------------------------------- #
     def MakeNodes( self, benchName ):
         bench = open( benchName, 'r' )
@@ -247,9 +247,9 @@ class Circuit:
             #Unpack options here
             pass
         nodes = self.nodes
-        waiting = self.waiting
-        ready = self.ready
-        done = []
+        waiting = self.nodeKeys.copy()
+        ready = []
+
         # print("waiting has...")
         # for key in waiting:
         #     print(key)
@@ -262,6 +262,7 @@ class Circuit:
             # the for loop moves the iterator again, thus skipping values
 
             #print(type(waiting))
+            done = []
             for key in waiting:
                 # print("in waiting for: " + key)
                 # print(type(key))
@@ -269,6 +270,10 @@ class Circuit:
                 if nodes[key].allInputsReady:
                     #print("Triggered allInputsReady!")
                     ready.append(key)
+            #Need to come test this if statement
+            if ready == []:
+                print("Error, the circuit graph is not connected!")
+                return False
             for key in ready:
                 # print("in ready...")
                 # print(key)
@@ -291,7 +296,6 @@ class Circuit:
 
             for key in done:
                 ready.remove(key)
-            done = []
         #exit BFS loop
         return True
     # ---------------------------------------------------------------------------- #
