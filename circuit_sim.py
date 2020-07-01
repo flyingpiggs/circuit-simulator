@@ -270,7 +270,7 @@ class Circuit:
                 if nodes[key].allInputsReady:
                     #print("Triggered allInputsReady!")
                     ready.append(key)
-            #Need to come test this if statement
+            #Need to test this if statement
             if ready == []:
                 print("Error, the circuit graph is not connected!")
                 return False
